@@ -1,0 +1,223 @@
+/* --- 1. General & Page Layout --- */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: "Segoe UI", Roboto, Arial, sans-serif;
+    background: #0d1117;
+    color: #e6edf3;
+    line-height: 1.6;
+    padding: 20px;
+}
+
+header {
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+header h1 {
+    font-size: 2rem;
+    color: #58a6ff;
+    margin-bottom: 10px;
+}
+
+/* --- 2. Main Container & Form --- */
+.container {
+    max-width: 1000px;
+    margin: auto;
+    background: #161b22;
+    padding: 25px;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+}
+
+form {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+label {
+    font-size: 0.95rem;
+    color: #9ba3af;
+}
+
+input[type="text"] {
+    padding: 12px;
+    border-radius: 8px;
+    border: 1px solid #30363d;
+    background: #0d1117;
+    color: #e6edf3;
+    font-size: 1rem;
+    transition: 0.3s;
+}
+
+input[type="text"]:focus {
+    outline: none;
+    border-color: #58a6ff;
+    background: #161b22;
+}
+
+button {
+    padding: 12px;
+    background: #238636;
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+button:hover {
+    background: #2ea043;
+}
+
+.search-type-selector {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    margin: 20px 0;
+}
+
+.search-type-selector label {
+    color: #9ba3af;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    font-size: 0.9rem;
+}
+
+.search-type-selector input[type="radio"] {
+    accent-color: #58a6ff;
+}
+
+/* --- 3. Result & History Display --- */
+.result {
+    margin-top: 20px;
+    padding: 10px;
+    border-radius: 10px;
+    background: #21262d;
+    border: 1px solid #30363d;
+}
+
+.result h3 { margin-bottom: 15px; color: #58a6ff; }
+.safe { color: #3fb950; font-weight: bold; }
+.breached { color: #f85149; font-weight: bold; }
+
+.history { margin-top: 30px; }
+.history h3 { margin-bottom: 10px; color: #9ba3af; }
+.history ul { list-style: none; padding: 0; }
+.history li {
+    background: #21262d;
+    padding: 10px 15px;
+    margin-bottom: 8px;
+    border-radius: 6px;
+    font-size: 0.9rem;
+    border: 1px solid #30363d;
+    transition: background-color 0.2s ease-in-out;
+}
+.history li:hover { background-color: #30363d; }
+.history li .timestamp { display: block; font-size: 0.8rem; color: #9ba3af; margin-top: 4px; }
+.history-identifier { font-weight: 600; color: #c9d1d9; }
+.history-search-type { font-style: italic; color: #9ba3af; }
+
+/* --- 4. Mind Map Core Styles --- */
+#jsmind_container {
+    width: 100%;
+    height: 500px;
+    border: 1px solid #30363d;
+    border-radius: 8px;
+    background: #0d1117;
+}
+
+jmnode {
+    background-color: #21262d;
+    color: #c9d1d9;
+    border: 1px solid #30363d;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4);
+    font-family: "Segoe UI", sans-serif;
+    padding: 10px 15px;
+    /* Base state for animation */
+    opacity: 0;
+    transform: scale(0.5) translateY(20px);
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+jmnode:hover {
+    cursor: pointer;
+    transform: scale(1.05);
+    border-color: #58a6ff;
+}
+
+jmnode.selected {
+    background-color: #3fb950; /* Using green for selection for clear distinction */
+    color: #ffffff;
+    border-color: #8c959f;
+}
+
+jmline {
+    stroke: #58a6ff;
+    stroke-width: 2px;
+}
+
+/* --- 5. Mind Map Node Variations --- */
+jmnode.root-node {
+    background-color: #f85149; /* Red for breached root, more impactful */
+    color: #ffffff;
+    font-weight: 600;
+}
+
+jmnode.breach-title {
+    background-color: #1f6feb;
+    color: #ffffff;
+}
+
+jmnode.breach-desc {
+    font-size: 0.9em;
+    font-weight: 300;
+    color: #9ba3af;
+}
+
+jmnode.leaf-node {
+    background-color: transparent;
+    border: 1px solid #388bfd;
+    color: #58a6ff;
+}
+
+jmnode.leaf-node:hover {
+    background-color: #388bfd;
+    color: #ffffff;
+}
+
+/* --- 6. Animations (Spinner & Nodes) --- */
+.form-action {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 45px;
+}
+
+.spinner {
+    width: 28px;
+    height: 28px;
+    border: 4px solid #30363d;
+    border-top-color: #58a6ff;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+/* Final state for node animation */
+#jsmind_container.loaded jmnode {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+}

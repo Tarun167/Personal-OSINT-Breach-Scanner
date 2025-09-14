@@ -1,0 +1,22 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Personal OSINT Dashboard</title>
+    <link type="text/css" rel="stylesheet" href="https://unpkg.com/jsmind@0.9.0/style/jsmind.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+    <header>
+        <h1>🛡️ Personal OSINT Dashboard</h1>
+    </header>
+
+    <div class="container">
+        {% block content %}{% endblock %}
+    </div>
+
+    <script type="text/javascript" src="https://unpkg.com/jsmind@0.9.0/es6/jsmind.js"></script>
+    
+    {% block scripts %}{% endblock %}
+</body>
+</html>
