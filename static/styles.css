@@ -129,12 +129,15 @@ button:hover {
 /* --- 4. Mind Map Core Styles --- */
 #jsmind_container {
     width: 100%;
-    height: 500px;
+    height: 550px;
     border: 1px solid #30363d;
     border-radius: 8px;
     background: #0d1117;
+    overflow: auto;
+    box-shadow: 0 0 10px rgba(0, 255, 255, 0.15);
 }
 
+/* Ensure jmnode visibility immediately */
 jmnode {
     background-color: #21262d;
     color: #c9d1d9;
@@ -143,10 +146,9 @@ jmnode {
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4);
     font-family: "Segoe UI", sans-serif;
     padding: 10px 15px;
-    /* Base state for animation */
-    opacity: 0;
-    transform: scale(0.5) translateY(20px);
-    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    opacity: 1; /* FIXED visibility issue */
+    transform: scale(1);
+    transition: transform 0.25s ease, border-color 0.25s ease;
 }
 
 jmnode:hover {
@@ -156,7 +158,7 @@ jmnode:hover {
 }
 
 jmnode.selected {
-    background-color: #3fb950; /* Using green for selection for clear distinction */
+    background-color: #3fb950;
     color: #ffffff;
     border-color: #8c959f;
 }
@@ -168,7 +170,7 @@ jmline {
 
 /* --- 5. Mind Map Node Variations --- */
 jmnode.root-node {
-    background-color: #f85149; /* Red for breached root, more impactful */
+    background-color: #f85149;
     color: #ffffff;
     font-weight: 600;
 }
@@ -212,12 +214,54 @@ jmnode.leaf-node:hover {
     animation: spin 1s linear infinite;
 }
 
-@keyframes spin {
-    to { transform: rotate(360deg); }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* --- 7. Mitigation Modal --- */
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0; top: 0;
+    width: 100%; height: 100%;
+    background-color: rgba(0,0,0,0.7);
+    animation: fadeIn 0.3s ease-in-out;
 }
 
-/* Final state for node animation */
-#jsmind_container.loaded jmnode {
-    opacity: 1;
-    transform: scale(1) translateY(0);
+.modal-content {
+    background-color: #161b22;
+    border: 1px solid #30363d;
+    border-radius: 12px;
+    box-shadow: 0 8px 30px rgba(0,0,0,0.5);
+    margin: 6% auto;
+    padding: 25px 35px;
+    width: 80%;
+    max-width: 650px;
+    position: relative;
+    animation: slideIn 0.4s ease-out;
 }
+
+.modal-close-button {
+    color: #9ba3af;
+    position: absolute;
+    top: 15px; right: 20px;
+    font-size: 28px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: color 0.2s;
+}
+.modal-close-button:hover { color: #e6edf3; }
+
+#modal-title { color: #58a6ff; margin-bottom: 5px; }
+.risk-level { font-weight: bold; margin-bottom: 15px; }
+#modal-definition { margin-bottom: 10px; }
+.risk-rationale { font-style: italic; color: #9ba3af; margin-bottom: 20px; }
+#modal-mitigation-list, #modal-prevention-list { list-style-type: '• '; padding-left: 20px; }
+#modal-mitigation-list li, #modal-prevention-list li { margin-bottom: 8px; }
+
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+@keyframes slideIn { from { transform: translateY(-50px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+
+/* --- 8. Risk Color Codes --- */
+.risk-level.high { color: #f85149; }
+.risk-level.medium, .risk-level.low-to-medium { color: #d29922; }
+.risk-level.low { color: #3fb950; }

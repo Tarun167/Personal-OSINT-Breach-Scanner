@@ -1,26 +1,34 @@
+import os
 import sqlite3
 import pandas as pd
 from flask import g
 
-# --- Section 1: History Database (for user search history) ---
-HISTORY_DATABASE = "instance/breach.db"
+# --- Database Paths ---
+HISTORY_DATABASE = os.path.join("instance", "breach.db")
+ENRICHMENT_CSV_PATH = os.path.join("instance", "enrichment_breaches.csv")
 
+# --- Section 1: Database Connection Management ---
 def get_db():
-    """Opens a new database connection if there is none yet for the current application context."""
+    """Get a database connection for the current request context."""
     if "db" not in g:
         g.db = sqlite3.connect(HISTORY_DATABASE)
         g.db.row_factory = sqlite3.Row
     return g.db
 
+
 def close_db(e=None):
-    """Closes the database again at the end of the request."""
+    """Close the active database connection."""
     db = g.pop("db", None)
     if db is not None:
         db.close()
 
+
+# --- Section 2: Database Initialization ---
 def init_db():
-    """Initializes the history database schema."""
+    """Initialize required tables: user queries + mitigations."""
     db = get_db()
+
+    # Table: Search history
     db.execute("""
         CREATE TABLE IF NOT EXISTS queries (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -30,64 +38,98 @@ def init_db():
             timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
         )
     """)
-    db.commit()
 
+    # Table: Mitigations
+    db.execute("""
+        CREATE TABLE IF NOT EXISTS mitigations (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            category TEXT UNIQUE NOT NULL,
+            risk_level TEXT,
+            definition TEXT,
+            rationale TEXT,
+            mitigations TEXT,
+            preventions TEXT
+        )
+    """)
+
+    db.commit()
+    print("✅ Database initialized with 'queries' and 'mitigations' tables.")
+
+
+# --- Section 3: Search History ---
 def save_query(identifier, search_type, result):
-    """Saves a search query and its summary to the history database."""
+    """Save a user query and its summary."""
     db = get_db()
     summary = "✅ Safe / No Results"
-    if result and result.get('breached'):
-        source_count = len(result.get('sources', []))
+    if result and result.get("breached"):
+        source_count = len(result.get("sources", []))
         summary = f"⚠️ Found in {source_count} source(s)"
-    
+
     db.execute(
         "INSERT INTO queries (identifier, search_type, summary) VALUES (?, ?, ?)",
         (identifier, search_type, summary)
     )
     db.commit()
 
+
 def get_user_queries(limit=5):
-    """Retrieves the most recent user queries from the history database."""
+    """Get the most recent search queries."""
     db = get_db()
-    return db.execute(
+    rows = db.execute(
         "SELECT * FROM queries ORDER BY timestamp DESC LIMIT ?", (limit,)
     ).fetchall()
+    return rows
 
 
-# --- Section 2: Enrichment Database (from Kaggle CSV) ---
-ENRICHMENT_CSV_PATH = "instance/enrichment_breaches.csv"
-enrichment_df = None # This global variable will hold your entire CSV in memory.
+# --- Section 4: Mitigation Management ---
+def insert_mitigation_record(category, risk_level, definition, rationale, mitigations, preventions):
+    """Insert or update mitigation data."""
+    db = get_db()
+    db.execute("""
+        INSERT INTO mitigations (category, risk_level, definition, rationale, mitigations, preventions)
+        VALUES (?, ?, ?, ?, ?, ?)
+        ON CONFLICT(category) DO UPDATE SET
+            risk_level=excluded.risk_level,
+            definition=excluded.definition,
+            rationale=excluded.rationale,
+            mitigations=excluded.mitigations,
+            preventions=excluded.preventions
+    """, (category, risk_level, definition, rationale, mitigations, preventions))
+    db.commit()
+
+
+def get_all_mitigations_from_db():
+    """Return all mitigation records sorted alphabetically."""
+    db = get_db()
+    rows = db.execute("SELECT * FROM mitigations ORDER BY category ASC").fetchall()
+    return [dict(row) for row in rows]
+
+
+# --- Section 5: Enrichment Database (Kaggle CSV) ---
+enrichment_df = None  # Cached in-memory dataframe
 
 def load_enrichment_data():
-    """
-    Loads the Kaggle CSV into a global pandas DataFrame.
-    This function is called only ONCE when the app starts for maximum efficiency.
-    """
+    """Load enrichment data from CSV (if present)."""
     global enrichment_df
-    if enrichment_df is None: # Only load if it hasn't been loaded yet
+    if enrichment_df is None:
         try:
             enrichment_df = pd.read_csv(ENRICHMENT_CSV_PATH, low_memory=False)
-            # Pre-process the 'Entity' column for faster, case-insensitive searching
-            enrichment_df['Entity_lower'] = enrichment_df['Entity'].str.lower()
-            print("✅ Enrichment database (CSV) loaded into memory successfully.")
+            enrichment_df["Entity_lower"] = enrichment_df["Entity"].str.lower()
+            print("✅ Enrichment CSV loaded successfully.")
         except FileNotFoundError:
-            print(f"⚠️ WARNING: Enrichment CSV not found at '{ENRICHMENT_CSV_PATH}'. Enrichment will be disabled.")
-            enrichment_df = pd.DataFrame() # Create an empty DataFrame to prevent errors
+            print(f"⚠️ WARNING: Enrichment CSV not found at '{ENRICHMENT_CSV_PATH}'.")
+            enrichment_df = pd.DataFrame()
+
 
 def get_enrichment_data(breach_name: str):
-    """
-    Searches the in-memory DataFrame for extra data about a breach.
-    This is much faster than connecting to a file for every search.
-    """
+    """Return enrichment details for a given breach name."""
     global enrichment_df
-    if enrichment_df.empty:
+    if enrichment_df is None or enrichment_df.empty:
         return {}
 
-    # Search the pre-processed lowercase column for a partial match
     search_name = breach_name.lower()
-    result = enrichment_df[enrichment_df['Entity_lower'].str.contains(search_name, na=False)]
-    
+    result = enrichment_df[enrichment_df["Entity_lower"].str.contains(search_name, na=False)]
+
     if not result.empty:
-        # Return the first match as a dictionary, replacing any missing values (NaN) with "N/A"
         return result.iloc[0].fillna("N/A").to_dict()
     return {}

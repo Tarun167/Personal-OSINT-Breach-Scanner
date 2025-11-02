@@ -3,7 +3,9 @@
 <head>
     <meta charset="utf-8">
     <title>Personal OSINT Dashboard</title>
-    <link type="text/css" rel="stylesheet" href="https://unpkg.com/jsmind@0.9.0/style/jsmind.css">
+    <!----<link type="text/css" rel="stylesheet" href="https://unpkg.com/jsmind@0.9.0/style/jsmind.css">-->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/jsmind/style/jsmind.css" />
+
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
 </head>
 <body>
@@ -14,9 +16,29 @@
     <div class="container">
         {% block content %}{% endblock %}
     </div>
-
-    <script type="text/javascript" src="https://unpkg.com/jsmind@0.9.0/es6/jsmind.js"></script>
     
-    {% block scripts %}{% endblock %}
+        <div id="mitigation-modal" class="modal">
+        <div class="modal-content">
+            <span class="modal-close-button">&times;</span>
+            <h2 id="modal-title"></h2>
+            <div id="modal-risk" class="risk-level"></div>
+            <p id="modal-definition"></p>
+            <p id="modal-rationale" class="risk-rationale"></p>
+            
+            <div class="advice-section">
+                <h4>Mitigation (What to do now)</h4>
+                <ul id="modal-mitigation-list"></ul>
+            </div>
+            <div class="advice-section">
+                <h4>Prevention (For the future)</h4>
+                <ul id="modal-prevention-list"></ul>
+            </div>
+        </div>
+    </div>
+
+    <!--<script type="text/javascript" src="https://unpkg.com/jsmind@0.9.0/es6/jsmind.js"></script>-->
+    <script src="https://cdn.jsdelivr.net/npm/jsmind/js/jsmind.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jsmind/js/jsmind.draggable.js"></script>
+    {% block scripts %}<script src="{{ url_for('static', filename='scripts.js') }}"></script>{% endblock %}
 </body>
 </html>
