@@ -102,6 +102,3 @@ Access it locally at: [https://127.0.0.1:5000](https://127.0.0.1:5000)
 MIT License — free to use, modify, and distribute with proper attribution.
 
 ---
-
-**Author:** [Tarun167](https://github.com/Tarun167)  
-**Repository:** [Personal-OSINT-Breach-Scanner](https://github.com/Tarun167/Personal-OSINT-Breach-Scanner)
